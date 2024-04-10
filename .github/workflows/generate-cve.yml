@@ -1,0 +1,73 @@
+name: Generate NVD
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  VULNCHECK_API_KEY: ${{ secrets.VULNCHECK_API_KEY }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          
+      - name: Checkout Fleet
+        uses: actions/checkout@v4
+        with:
+          repository: fleetdm/fleet
+          fetch-depth: 1
+          ref: 17966-generate-vulncheck
+          path: fleet
+
+      - name: Setup Go
+        uses: actions/setup-go@v4.1.0
+        with:
+          cache: false
+          go-version: '^1.21.4'
+
+      - name: Generate NVD Feeds
+        run: |
+          cd fleet
+          go mod download
+          export VULNCHECK_API_KEY=${{ secrets.VULNCHECK_API_KEY }}
+          go run cmd/cve/generate.go --db_dir ./vulndb --debug
+          rm ./vulndb/vulncheck.zip
+            
+      - name: Current date
+        id: date
+        run: |
+          echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Tag
+        run: |
+          git config --global user.email ""
+          git config --global user.name "GitHub Actions Bot"
+          git pull
+          git commit --allow-empty -m 'Release ${{ steps.date.outputs.date }}'
+          git push origin main
+          
+      - name: Release
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
+        with:
+          files: |
+            fleet/vulndb/*
+          tag_name: cve-${{ steps.date.outputs.date }}
+          target_commitish: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Old Releases
+        uses: dev-drprasad/delete-older-releases@v0.3.2
+        with:
+          keep_latest: 144
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
