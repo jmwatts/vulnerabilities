@@ -1,4 +1,4 @@
-name: Generate NVD
+name: Generate CVE
 
 on:
   push:
@@ -72,6 +72,7 @@ jobs:
       - name: Delete Old Releases
         uses: dev-drprasad/delete-older-releases@v0.3.2
         with:
+          delete_tag_pattern: ^cve-.*
           keep_latest: 144
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
