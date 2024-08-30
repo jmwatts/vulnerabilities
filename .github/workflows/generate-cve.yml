@@ -53,6 +53,14 @@ jobs:
           ref: main
           path: fleet
 
+      - name: Checkout goval-dictionary
+        uses: actions/checkout@v4
+        with:
+          repository: vulsio/goval-dictionary
+          fetch-depth: 1
+          ref: adcb4dc66908aa84a0aabcd376af0e6e677ea2fd
+          path: goval-dictionary
+
       - name: Setup Go
         uses: actions/setup-go@v4.1.0
         with:
@@ -64,6 +72,16 @@ jobs:
           cd fleet
           go mod download
           go run cmd/cve/generate.go --db_dir ./cvefeed --debug
+
+      - name: Generate goval-dictionary sqlite files
+        run: |
+          cd goval-dictionary
+          make build
+          ./goval-dictionary fetch amazon 1 --dbpath ../fleet/cvefeed/amzn_01.sqlite3
+          ./goval-dictionary fetch amazon 2 --dbpath ../fleet/cvefeed/amzn_02.sqlite3
+          ./goval-dictionary fetch amazon 2022 --dbpath ../fleet/cvefeed/amzn_2022.sqlite3
+          ./goval-dictionary fetch amazon 2023 --dbpath ../fleet/cvefeed/amzn_2023.sqlite3
+          xz ../fleet/cvefeed/*.sqlite3
             
       - name: Current date
         id: date
