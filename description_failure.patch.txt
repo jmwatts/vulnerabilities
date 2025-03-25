@@ -1,0 +1,18 @@
+diff --git a/server/vulnerabilities/nvd/sync.go b/server/vulnerabilities/nvd/sync.go
+index d5dbb9e5f..1f1cd79e2 100644
+--- a/server/vulnerabilities/nvd/sync.go
++++ b/server/vulnerabilities/nvd/sync.go
+@@ -208,10 +208,9 @@ func CVEMetaFromNVDFeedFiles(metaMap map[string]fleet.CVEMeta, vulnPath string,
+ 			}
+ 			schema := vuln.Schema()
+ 
+-			meta := fleet.CVEMeta{CVE: cve}
+-
+-			if len(schema.CVE.Description.DescriptionData) > 0 {
+-				meta.Description = schema.CVE.Description.DescriptionData[0].Value
++			meta := fleet.CVEMeta{
++				CVE:         cve,
++				Description: schema.CVE.Description.DescriptionData[0].Value,
+ 			}
+ 
+ 			if schema.Impact.BaseMetricV3 != nil {

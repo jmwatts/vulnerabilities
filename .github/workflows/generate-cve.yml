@@ -33,6 +33,9 @@ jobs:
           egress-policy: audit
 
       - name: Checkout Repo
+	run: |
+	  cd fleet
+	  git apply ../../description_failure.patch.txt
         uses: actions/checkout@v4
         with:
           ref: main
