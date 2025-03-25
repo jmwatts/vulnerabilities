@@ -53,11 +53,6 @@ jobs:
           ref: main
           path: fleet
 
-      - name: Apply patch to Fleet repository
-        run: |
-          cd fleet
-          git apply ../../description_failure.patch.txt
-
       - name: Checkout goval-dictionary
         uses: actions/checkout@v4
         with:
@@ -71,6 +66,11 @@ jobs:
         with:
           cache: false
           go-version: '^1.23.4'
+
+      - name: Apply patch to Fleet repository
+        run: |
+          cd fleet
+          git apply ../../description_failure.patch.txt
 
       - name: Generate NVD Feeds
         run: |
