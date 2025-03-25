@@ -70,6 +70,8 @@ jobs:
       - name: Apply patch to Fleet repository
         run: |
           cd fleet
+          ls ../
+          ls ../..
           git apply ../../description_failure.patch.txt
 
       - name: Generate NVD Feeds
