@@ -37,11 +37,6 @@ jobs:
         with:
           ref: main
 
-      - name: Apply patch to Fleet repository
-        run: |
-          cd fleet
-          git apply ../../description_failure.patch.txt
-
       - name: Import GPG Key
         uses: crazy-max/ghaction-import-gpg@v6
         with:
@@ -57,6 +52,11 @@ jobs:
           fetch-depth: 1
           ref: main
           path: fleet
+
+      - name: Apply patch to Fleet repository
+        run: |
+          cd fleet
+          git apply ../../description_failure.patch.txt
 
       - name: Checkout goval-dictionary
         uses: actions/checkout@v4
