@@ -117,8 +117,8 @@ jobs:
 
       - name: Validate NVD Feeds
         run: |
-          ls ../
-          cd ../fleet
+          ls 
+          cd fleet
           go run cmd/cve/validate/main.go --db_dir ./cvefeed --debug
 
       - name: Compress Amazon Linux vulnerability sqlite files
