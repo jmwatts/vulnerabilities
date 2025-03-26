@@ -27,6 +27,11 @@ jobs:
     timeout-minutes: 180
 
     steps:
+      - name: Set up environment
+        run: |
+          apt-get update
+          apt-get install -y jq sqlite3 xz-utils
+
       - name: Harden Runner
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
@@ -67,10 +72,10 @@ jobs:
           cache: false
           go-version: '^1.23.4'
 
-      - name: Apply patch to Fleet repository
-        run: |
-          cd fleet
-          git apply ../description_failure.patch.txt
+#      - name: Apply patch to Fleet repository
+#        run: |
+#          cd fleet
+#          git apply ../description_failure.patch.txt
 
       - name: Generate NVD Feeds
         run: |
@@ -83,6 +88,27 @@ jobs:
           cd goval-dictionary
           make build
           mkdir -p ../fleet/cvefeed
+
+      - name: Break files
+        run: |
+          gzip -dk ./fleet/cvefeed/nvdcve-1.1-2002.json.gz
+          jq '(.CVE_Items[].cve.description) = {"description_data":""}' ./fleet/cvefeed/nvdcve-1.1-2002.json > ./fleet/cvefeed/nvdcve-1.1-2002_modified.json && mv ./fleet/cvefeed/nvdcve-1.1-2002_modified.json ./fleet/cvefeed/nvdcve-1.1-2002.json
+          gzip -f ./fleet/cvefeed/nvdcve-1.1-2002.json
+          sqlite3 ./fleet/cvefeed/amzn_01.sqlite3 <<EOF
+          PRAGMA foreign_keys=off;
+          BEGIN TRANSACTION;
+          CREATE TABLE packages_new AS SELECT id, name, arch, definition_id FROM packages;
+          INSERT INTO packages_new SELECT id, name, arch, definition_id FROM packages;
+          DROP TABLE packages;
+          ALTER TABLE packages_new RENAME TO packages;
+          COMMIT;
+          PRAGMA foreign_keys=on;
+          EOF
+
+      - name: Validate NVD Feeds
+        run: |
+          cd ../fleet
+          go run cmd/cve/validate/main.go --db_dir ./cvefeed --debug
 
       - name: Pull Amazon Linux 1 vulnerabilities
         run: for i in {1..3}; do goval-dictionary/goval-dictionary fetch amazon 1 --dbpath ./fleet/cvefeed/amzn_01.sqlite3 && s=0 && break || s=$? && sleep 2; done; (exit $s)
