@@ -94,6 +94,7 @@ jobs:
           gzip -dk ./fleet/cvefeed/nvdcve-1.1-2002.json.gz
           jq '(.CVE_Items[].cve.description) = {"description_data":""}' ./fleet/cvefeed/nvdcve-1.1-2002.json > ./fleet/cvefeed/nvdcve-1.1-2002_modified.json && mv ./fleet/cvefeed/nvdcve-1.1-2002_modified.json ./fleet/cvefeed/nvdcve-1.1-2002.json
           gzip -f ./fleet/cvefeed/nvdcve-1.1-2002.json
+          ls ./fleet/cvefeed/
           sqlite3 ./fleet/cvefeed/amzn_01.sqlite3 ".table"
           sqlite3 ./fleet/cvefeed/amzn_01.sqlite3 <<EOF
           PRAGMA foreign_keys=off;
