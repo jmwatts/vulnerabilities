@@ -117,6 +117,7 @@ jobs:
 
       - name: Validate NVD Feeds
         run: |
+          ls ../
           cd ../fleet
           go run cmd/cve/validate/main.go --db_dir ./cvefeed --debug
 
